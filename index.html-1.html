@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PAYG Income Assessment — Australian Mortgage Processing</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --navy:       #0B1F3A;
+    --teal:       #0E7C7B;
+    --teal-light: #E6F4F4;
+    --amber:      #D97706;
+    --amber-light:#FEF3C7;
+    --slate:      #F1F5F9;
+    --muted:      #64748B;
+    --border:     #CBD5E1;
+    --white:      #FFFFFF;
+    --red:        #DC2626;
+    --red-light:  #FEE2E2;
+    --green:      #059669;
+    --green-light:#D1FAE5;
+    --bg:         #F8FAFC;
+  }
+
+  body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--navy);
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  .site-header {
+    background: var(--navy);
+    color: var(--white);
+    padding: 20px 32px;
+  }
+  .site-header .eyebrow {
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--teal-light);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .site-header h1 {
+    font-family: Georgia, serif;
+    font-size: 26px;
+    font-weight: 900;
+    letter-spacing: -0.5px;
+  }
+  .site-header p {
+    font-size: 13px;
+    color: #94A3B8;
+    margin-top: 6px;
+  }
+
+  /* ── TABS ── */
+  .tabs {
+    background: var(--white);
+    border-bottom: 1px solid var(--border);
+    padding: 0 32px;
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab-btn {
+    padding: 12px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--muted);
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: color .15s, border-color .15s;
+  }
+  .tab-btn.active {
+    font-weight: 700;
+    color: var(--teal);
+    border-bottom-color: var(--teal);
+  }
+  .tab-btn:hover:not(.active) { color: var(--navy); }
+
+  /* ── CONTENT AREA ── */
+  .content {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 28px 24px 60px;
+  }
+
+  /* ── SECTIONS ── */
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* ── SECTION TITLE ── */
+  .section-title {
+    font-family: Georgia, serif;
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--navy);
+    margin-bottom: 18px;
+    padding-bottom: 8px;
+    border-bottom: 3px solid var(--teal);
+  }
+
+  /* ── CARD ── */
+  .card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin-bottom: 16px;
+  }
+  .card.border-top-teal  { border-top: 4px solid var(--teal); }
+  .card.border-top-amber { border-top: 4px solid var(--amber); }
+  .card.border-top-green { border-top: 4px solid var(--green); }
+
+  /* ── LABEL ── */
+  .label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  /* ── TAG ── */
+  .tag {
+    display: inline-block;
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .tag-teal  { background: var(--teal-light);  color: var(--teal);  border: 1px solid var(--teal); }
+  .tag-amber { background: var(--amber-light); color: var(--amber); border: 1px solid var(--amber); }
+  .tag-red   { background: var(--red-light);   color: var(--red);   border: 1px solid var(--red); }
+  .tag-green { background: var(--green-light); color: var(--green); border: 1px solid var(--green); }
+
+  /* ── RULE BOXES ── */
+  .rule-box {
+    border-left: 4px solid;
+    border-radius: 0 8px 8px 0;
+    padding: 10px 14px;
+    margin: 10px 0;
+    font-size: 13px;
+    color: var(--navy);
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .rule-box.info    { background: var(--teal-light);  border-color: var(--teal); }
+  .rule-box.warning { background: var(--amber-light); border-color: var(--amber); }
+  .rule-box.rule    { background: #F0F4FF;             border-color: #4F6EF7; }
+  .rule-box .icon   { flex-shrink: 0; font-size: 15px; }
+
+  /* ── TABLE ── */
+  .table-wrap { overflow-x: auto; margin-top: 12px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead tr th {
+    background: var(--navy);
+    color: var(--white);
+    padding: 10px 12px;
+    text-align: left;
+    font-weight: 700;
+  }
+  tbody tr:nth-child(odd)  { background: var(--white); }
+  tbody tr:nth-child(even) { background: var(--slate); }
+  tbody td {
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+    line-height: 1.5;
+  }
+
+  /* ── FORMULA BOX ── */
+  .formula-box {
+    background: var(--navy);
+    color: var(--white);
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin: 12px 0;
+  }
+  .formula-box .f-label {
+    font-size: 11px;
+    letter-spacing: 1px;
+    color: var(--teal-light);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .formula-box .f-formula {
+    font-family: monospace;
+    font-size: 14px;
+    color: #A5F3FC;
+    font-weight: 700;
+  }
+  .formula-box .f-note {
+    font-size: 12px;
+    color: #94A3B8;
+    margin-top: 6px;
+  }
+
+  /* ── TWO-COL GRID ── */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-top: 8px; }
+  @media (max-width: 640px) {
+    .grid-2 { grid-template-columns: 1fr; }
+    .grid-3 { grid-template-columns: 1fr; }
+  }
+
+  /* ── OVERVIEW BOXES ── */
+  .overview-box {
+    border-radius: 8px;
+    padding: 14px 16px;
+  }
+  .overview-box.payg  { background: var(--teal-light);  border: 1px solid var(--teal); }
+  .overview-box.self  { background: #FFF7ED;            border: 1px solid var(--amber); }
+  .overview-box .box-title { font-weight: 800; margin-bottom: 6px; font-size: 14px; }
+  .overview-box.payg .box-title  { color: var(--teal); }
+  .overview-box.self .box-title  { color: var(--amber); }
+  .overview-box p { font-size: 13px; color: var(--navy); }
+
+  /* ── MINI CARD (SLATE) ── */
+  .mini-card {
+    background: var(--slate);
+    border-radius: 8px;
+    padding: 14px;
+  }
+  .mini-card .mc-icon { font-size: 22px; margin-bottom: 6px; }
+  .mini-card .mc-title { font-weight: 700; color: var(--navy); font-size: 13px; margin-bottom: 4px; }
+  .mini-card p { font-size: 12px; color: var(--muted); line-height: 1.6; }
+
+  /* ── TEAL SOURCE CARDS ── */
+  .source-cards { display: flex; gap: 12px; margin-top: 8px; flex-wrap: wrap; }
+  .source-card {
+    background: var(--teal-light);
+    border: 1px solid var(--teal);
+    border-radius: 8px;
+    padding: 10px 14px;
+    flex: 1 1 180px;
+  }
+  .source-card .sc-title { font-weight: 800; color: var(--teal); font-size: 13px; }
+  .source-card .sc-desc  { font-size: 12px; color: var(--navy); margin-top: 4px; }
+
+  /* ── UL STYLES ── */
+  ul.income-list {
+    margin: 8px 0;
+    padding-left: 18px;
+    font-size: 13px;
+    color: var(--navy);
+    line-height: 2;
+  }
+
+  /* ── SERVICING CALCULATOR ── */
+  .calc-box {
+    background: var(--navy);
+    border-radius: 10px;
+    padding: 20px;
+    color: var(--white);
+    font-family: monospace;
+    font-size: 13px;
+  }
+  .calc-header {
+    color: #94A3B8;
+    margin-bottom: 12px;
+    font-family: sans-serif;
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .calc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  @media (max-width: 540px) { .calc-grid { grid-template-columns: 1fr; } }
+  .calc-item {
+    background: rgba(255,255,255,0.05);
+    border-radius: 6px;
+    padding: 8px 12px;
+  }
+  .calc-item.cyan  { border-left: 3px solid #A5F3FC; }
+  .calc-item.gold  { border-left: 3px solid #FCD34D; }
+  .calc-item .ci-label { font-size: 11px; color: #94A3B8; }
+  .calc-item .ci-amt   { font-weight: 700; margin-top: 2px; }
+  .calc-item.cyan .ci-amt { color: #A5F3FC; }
+  .calc-item.gold .ci-amt { color: #FCD34D; }
+  .calc-item .ci-shade { font-size: 11px; color: #64748B; margin-top: 2px; }
+  .calc-totals {
+    margin-top: 16px;
+    border-top: 1px solid rgba(255,255,255,0.15);
+    padding-top: 12px;
+  }
+  .calc-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 6px;
+    font-family: monospace;
+  }
+  .calc-row .cr-label { color: #94A3B8; }
+  .calc-row .cr-cyan  { color: #A5F3FC; font-weight: 700; }
+  .calc-row .cr-gold  { color: #FCD34D; font-weight: 700; }
+  .calc-total {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 12px;
+    border-top: 2px solid rgba(255,255,255,0.3);
+    padding-top: 10px;
+    font-family: monospace;
+  }
+  .calc-total .ct-label { color: var(--white); font-weight: 800; font-size: 15px; }
+  .calc-total .ct-value { color: #86EFAC; font-weight: 800; font-size: 15px; }
+  .calc-note { font-size: 12px; color: var(--muted); margin-top: 10px; }
+
+  /* body text */
+  .body-text { font-size: 14px; color: var(--navy); line-height: 1.7; }
+  .body-text-sm { font-size: 13px; color: var(--navy); line-height: 1.7; }
+  .mt8 { margin-top: 8px; }
+  .mt10 { margin-top: 10px; }
+  .mt16 { margin-top: 16px; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="site-header">
+  <div class="eyebrow">Australian Mortgage Processing</div>
+  <h1>PAYG Income Assessment</h1>
+  <p>Complete reference guide for loan processors</p>
+</div>
+
+<!-- TABS -->
+<div class="tabs" role="tablist">
+  <button class="tab-btn active" role="tab" data-section="overview">Overview</button>
+  <button class="tab-btn" role="tab" data-section="payg-types">PAYG Types</button>
+  <button class="tab-btn" role="tab" data-section="income-statement">Income Statement</button>
+  <button class="tab-btn" role="tab" data-section="payslip">Pay Slip Components</button>
+  <button class="tab-btn" role="tab" data-section="deductions">Deductions</button>
+  <button class="tab-btn" role="tab" data-section="ytd">YTD</button>
+  <button class="tab-btn" role="tab" data-section="base-vs-nonbase">Base vs Non-Base</button>
+  <button class="tab-btn" role="tab" data-section="income-shading">Income Shading</button>
+</div>
+
+<!-- CONTENT -->
+<div class="content">
+
+  <!-- ═══ OVERVIEW ═══ -->
+  <div id="overview" class="section active">
+    <h2 class="section-title">What is PAYG?</h2>
+    <div class="card">
+      <p class="body-text">
+        <strong>PAYG (Pay As You Go)</strong> refers to individuals who earn income as a <strong>salaried employee</strong> — tax is withheld by the employer before the employee receives their wage.
+      </p>
+      <div class="grid-2 mt16">
+        <div class="overview-box payg">
+          <div class="box-title">✔ PAYG</div>
+          <p>Works <em>under</em> someone else. Tax is deducted by employer. Receives a payslip. Examples: nurses, teachers, engineers employed by a company.</p>
+        </div>
+        <div class="overview-box self">
+          <div class="box-title">⚙ Self Employed</div>
+          <p>Runs their <em>own</em> business. Responsible for own tax. PAYG employees may work <em>under</em> a self-employed person.</p>
+        </div>
+      </div>
+      <div class="rule-box rule">
+        <span class="icon">📋</span>
+        <span>In Australian mortgage processing, there are two income types: <strong>PAYG</strong> and <strong>Self-Employed</strong>. Each uses different documents and assessment methods.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ PAYG TYPES ═══ -->
+  <div id="payg-types" class="section">
+    <h2 class="section-title">Types of PAYG Employment</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Type</th>
+            <th>Hours</th>
+            <th>Leave Entitlements</th>
+            <th>Key Documents</th>
+            <th>Lender Treatment</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="tag tag-green">Full Time</span></td>
+            <td>38 hrs/week (standard). Fixed and guaranteed.</td>
+            <td>Annual leave (4 wks), sick leave, long service, public holidays — all paid.</td>
+            <td>2 recent payslips + employment letter or last 2 years' tax returns</td>
+            <td>Most stable. 100% of base income accepted.</td>
+          </tr>
+          <tr>
+            <td><span class="tag tag-teal">Part Time</span></td>
+            <td>Less than 38 hrs/week but fixed/consistent hours per contract.</td>
+            <td>Same entitlements as full-time, pro-rated to hours worked.</td>
+            <td>2 payslips showing consistent hours + letter confirming ongoing employment</td>
+            <td>Base income accepted at contracted hours. Must show consistency.</td>
+          </tr>
+          <tr>
+            <td><span class="tag tag-amber">Casual</span></td>
+            <td>No guaranteed hours. Varies week to week.</td>
+            <td>No paid leave. Receives casual loading (~25%) in lieu of entitlements.</td>
+            <td>12 months' payslips + income statement often required.</td>
+            <td>Higher risk — 12 months same role typically required. YTD annualised.</td>
+          </tr>
+          <tr>
+            <td><span class="tag tag-red">Contract</span></td>
+            <td>Defined by contract — may be full-time hours but fixed term.</td>
+            <td>Depends on contract type. Some entitlements if deemed employee.</td>
+            <td>Copy of contract + payslips + renewal history</td>
+            <td>Lenders assess renewal likelihood. May require 2 years history.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="rule-box warning mt10">
+      <span class="icon">⚠</span>
+      <span>For <strong>casual employees</strong>, lenders require at least 12 months in the same role/industry. Income statement required if first 3 months of current financial year or discrepancy in payslips.</span>
+    </div>
+  </div>
+
+  <!-- ═══ INCOME STATEMENT ═══ -->
+  <div id="income-statement" class="section">
+    <h2 class="section-title">Income Statement</h2>
+    <div class="card">
+      <div class="label">What is it?</div>
+      <p class="body-text">
+        An <strong>Income Statement</strong> (formerly Payment Summary / Group Certificate) is an official ATO document summarising an employee's <strong>total gross income</strong> and <strong>tax withheld</strong> for a financial year (1 July – 30 June). Provided via Single Touch Payroll (STP) and accessible through <strong>myGov → ATO</strong>.
+      </p>
+      <div class="rule-box info mt10">
+        <span class="icon">ℹ</span>
+        <span>Every employer submits STP data differently — layout and categories vary between organisations. However, the ATO income statement format is standardised once submitted.</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="label">Why and When Do We Use It?</div>
+      <div class="grid-3">
+        <div class="mini-card">
+          <div class="mc-icon">📅</div>
+          <div class="mc-title">Start of Financial Year</div>
+          <p>Required for first 3 months of new FY (July–Sept). Payslips won't reflect a full year yet — prior year income statement used to verify income.</p>
+        </div>
+        <div class="mini-card">
+          <div class="mc-icon">🔀</div>
+          <div class="mc-title">Casual Employees</div>
+          <p>Required to verify 12-month income continuity and calculate annualised income, since hours/income vary significantly.</p>
+        </div>
+        <div class="mini-card">
+          <div class="mc-icon">⚠️</div>
+          <div class="mc-title">Payslip Discrepancy</div>
+          <p>If payslips show unusual figures or missing YTD, income statement is used as cross-reference to verify accuracy.</p>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="label">Where to Generate an Income Statement</div>
+      <div class="source-cards">
+        <div class="source-card">
+          <div class="sc-title">myGov</div>
+          <div class="sc-desc">Client logs in → Links to ATO → 'Income Statements' under Employment section</div>
+        </div>
+        <div class="source-card">
+          <div class="sc-title">ATO App</div>
+          <div class="sc-desc">Official ATO mobile app — same data as myGov</div>
+        </div>
+        <div class="source-card">
+          <div class="sc-title">Tax Agent</div>
+          <div class="sc-desc">Accountant or registered tax agent can access via ATO portal</div>
+        </div>
+        <div class="source-card">
+          <div class="sc-title">Employer</div>
+          <div class="sc-desc">Employer must provide payment summary if not using STP</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ PAY SLIP COMPONENTS ═══ -->
+  <div id="payslip" class="section">
+    <h2 class="section-title">Components of a Pay Slip</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Pay Slip Field</th><th>Significance in Assessment</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Employee Name</strong></td><td>Confirms identity of borrower. Must match loan application.</td></tr>
+          <tr><td><strong>Employer Name</strong></td><td>Confirms employment relationship. Must match employment letter.</td></tr>
+          <tr><td><strong>ABN</strong></td><td>Australian Business Number — verifies employer is a registered entity.</td></tr>
+          <tr><td><strong>Pay Frequency</strong></td><td>Weekly / Fortnightly / Monthly. Used in annualisation formula.</td></tr>
+          <tr><td><strong>Base Rate</strong></td><td>Hourly or daily rate. Used to calculate base income.</td></tr>
+          <tr><td><strong>Base Hours</strong></td><td>Contracted hours per pay period. Multiplied by rate to get base pay.</td></tr>
+          <tr><td><strong>YTD Gross</strong></td><td>Used when deductions are voluntary (use gross YTD for assessment).</td></tr>
+          <tr><td><strong>YTD Taxable</strong></td><td>Used when deductions are mandatory (use taxable YTD for assessment).</td></tr>
+          <tr><td><strong>Deductions (Pre &amp; Post Tax)</strong></td><td>Determines whether gross or taxable YTD is used in calculation.</td></tr>
+          <tr><td><strong>Non-Base Income</strong></td><td>Overtime, commission, bonuses — subject to income shading.</td></tr>
+          <tr><td><strong>Leave (Annual / Sick / Public Holiday)</strong></td><td>Leave loadings may count as income. Public holiday pay generally included.</td></tr>
+          <tr><td><strong>Occupation / Position</strong></td><td>Confirms employment type. May affect income shading policies.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="rule-box rule mt10">
+      <span class="icon">📋</span>
+      <span>If <strong>allowances are recurring in nature</strong> (e.g. car allowance paid every pay period), they are added to base income. One-off or irregular allowances are treated as non-base income.</span>
+    </div>
+  </div>
+
+  <!-- ═══ DEDUCTIONS ═══ -->
+  <div id="deductions" class="section">
+    <h2 class="section-title">Deductions in a Pay Slip</h2>
+    <div class="grid-2">
+      <div class="card border-top-teal" style="margin-bottom:0">
+        <span class="tag tag-teal">Pre-Tax Deductions</span>
+        <p class="body-text-sm mt10">Deducted <strong>before</strong> income tax is calculated. Reduces taxable income.</p>
+        <ul class="income-list">
+          <li>Salary sacrifice (super contributions)</li>
+          <li>Salary sacrifice (novated car lease)</li>
+          <li>Salary sacrifice (laptop / equipment)</li>
+          <li>Union fees (sometimes)</li>
+          <li>Workplace giving / charity</li>
+        </ul>
+      </div>
+      <div class="card border-top-amber" style="margin-bottom:0">
+        <span class="tag tag-amber">Post-Tax Deductions</span>
+        <p class="body-text-sm mt10">Deducted <strong>after</strong> income tax is calculated. Does not reduce taxable income.</p>
+        <ul class="income-list">
+          <li>Private health insurance</li>
+          <li>Life insurance / income protection</li>
+          <li>Superannuation (above SG rate)</li>
+          <li>Employee share scheme</li>
+          <li>Employer loan repayments</li>
+          <li>Child support (court-ordered)</li>
+        </ul>
+      </div>
+    </div>
+
+    <h2 class="section-title mt16">Deduction Assessment Rules</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Deduction Type</th><th>Action</th><th>YTD to Use</th><th>Reason</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="tag tag-green">Voluntary</span></td>
+            <td>IGNORE — do not deduct from income</td>
+            <td>Use GROSS YTD</td>
+            <td>Client chose to make the deduction; not a liability reducing income capacity</td>
+          </tr>
+          <tr>
+            <td><span class="tag tag-red">Mandatory / Non-Voluntary</span></td>
+            <td>DEDUCT from base income</td>
+            <td>Use TAXABLE YTD</td>
+            <td>Court-ordered or compulsory; reduces true available income</td>
+          </tr>
+          <tr>
+            <td>Mandatory (annualised method)</td>
+            <td>Annualise deduction first, then deduct from gross YTD</td>
+            <td>Gross YTD</td>
+            <td>Captures full-year impact even if deduction started mid-year</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="rule-box warning mt10">
+      <span class="icon">⚠</span>
+      <span>Examples of <strong>non-voluntary (mandatory)</strong> deductions: child support orders, garnishee orders, court-mandated repayments. These must be deducted from income before serviceability assessment.</span>
+    </div>
+  </div>
+
+  <!-- ═══ YTD ═══ -->
+  <div id="ytd" class="section">
+    <h2 class="section-title">YTD — Year to Date</h2>
+    <div class="card">
+      <div class="label">What is YTD?</div>
+      <p class="body-text">
+        <strong>YTD (Year to Date)</strong> is the cumulative total of income (or deductions) from the <strong>start of the financial year (1 July)</strong> to the current payslip date. Used to <em>annualise</em> income where pay is variable — particularly for casual workers or employees with variable pay components.
+      </p>
+      <div class="formula-box">
+        <div class="f-label">YTD Annualisation Formula — Days Method</div>
+        <div class="f-formula">Annual Income = (YTD Gross ÷ Days Worked) × 365</div>
+        <div class="f-note">Days Worked = Number of days from 1 July to payslip date</div>
+      </div>
+      <div class="formula-box">
+        <div class="f-label">YTD Annualisation Formula — Pay Period Method</div>
+        <div class="f-formula">Annual Income = (YTD ÷ Pay Periods Elapsed) × Total Pay Periods in Year</div>
+        <div class="f-note">E.g. Fortnightly: YTD ÷ 10 × 26 (if 10 fortnights have passed)</div>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>PAYG Type</th><th>Use YTD?</th><th>Gross or Taxable?</th><th>Reason</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Full Time (fixed salary)</td>
+            <td>Usually not — base salary × 52 sufficient</td>
+            <td>—</td>
+            <td>Stable; YTD is cross-check only</td>
+          </tr>
+          <tr>
+            <td>Part Time</td>
+            <td>Yes, if hours vary</td>
+            <td>Gross (if only voluntary deductions)</td>
+            <td>Hours may differ per period</td>
+          </tr>
+          <tr>
+            <td><span class="tag tag-amber">Casual</span></td>
+            <td>Yes — always annualise from YTD</td>
+            <td>Gross YTD or taxable if mandatory deductions</td>
+            <td>No contracted hours; YTD is only reliable measure</td>
+          </tr>
+          <tr>
+            <td>Contract</td>
+            <td>Yes, if pay varies</td>
+            <td>Gross or taxable depending on deductions</td>
+            <td>Contract terms may change between periods</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ═══ BASE VS NON-BASE ═══ -->
+  <div id="base-vs-nonbase" class="section">
+    <h2 class="section-title">Base Income vs Non-Base Income</h2>
+    <div class="grid-2">
+      <div class="card border-top-green" style="margin-bottom:0">
+        <span class="tag tag-green">Base Income</span>
+        <p class="body-text-sm mt10">Regular, guaranteed income from employment. Reflects the <strong>contracted/consistent</strong> earnings the borrower reliably receives.</p>
+        <ul class="income-list">
+          <li>Base salary / wages</li>
+          <li>Contracted hours × base rate</li>
+          <li>Recurring allowances (car, travel, tools)</li>
+          <li>Regular leave loading</li>
+        </ul>
+        <div class="formula-box">
+          <div class="f-label">Full Time</div>
+          <div class="f-formula">Annual Base = Base Rate × Base Hours × 52</div>
+        </div>
+        <div class="formula-box">
+          <div class="f-label">Part Time</div>
+          <div class="f-formula">Annual Base = (Contracted Hrs ÷ Wk) × Rate × 52</div>
+        </div>
+      </div>
+      <div class="card border-top-amber" style="margin-bottom:0">
+        <span class="tag tag-amber">Non-Base Income</span>
+        <p class="body-text-sm mt10">Variable income earned <strong>above and beyond</strong> the base. Not guaranteed. Lenders apply <strong>income shading</strong> before including.</p>
+        <ul class="income-list">
+          <li>Overtime</li>
+          <li>Commission</li>
+          <li>Bonus / incentive pay</li>
+          <li>Non-recurring allowances</li>
+        </ul>
+        <div class="formula-box">
+          <div class="f-label">Non-Base Annual Calculation</div>
+          <div class="f-formula">Non-Base (Annual) = YTD Non-Base ÷ Months × 12</div>
+          <div class="f-note">Then apply lender's shading % before adding to servicing</div>
+        </div>
+      </div>
+    </div>
+    <div class="rule-box info mt16">
+      <span class="icon">ℹ</span>
+      <span>Base income is accepted at 100% of the calculated annual figure. Non-base income is <strong>shaded (reduced)</strong> before use in serviceability. See the Income Shading tab.</span>
+    </div>
+  </div>
+
+  <!-- ═══ INCOME SHADING ═══ -->
+  <div id="income-shading" class="section">
+    <h2 class="section-title">Income Shading for Non-Base Income</h2>
+    <div class="card">
+      <div class="label">What is Income Shading?</div>
+      <p class="body-text">
+        <strong>Income shading</strong> is the practice where lenders accept only a <em>percentage</em> of non-base income (overtime, commission, bonus) in serviceability calculations. Since this income is variable and not guaranteed, lenders apply a discount to reduce lending risk.
+      </p>
+    </div>
+    <div class="card">
+      <div class="label">Why Do Lenders Apply Income Shading?</div>
+      <div class="grid-3">
+        <div class="mini-card">
+          <div class="mc-icon">📉</div>
+          <div class="mc-title">Income Volatility</div>
+          <p>Overtime and bonuses can disappear overnight — especially during downturns, restructures, or role changes.</p>
+        </div>
+        <div class="mini-card">
+          <div class="mc-icon">🏦</div>
+          <div class="mc-title">Prudent Lending</div>
+          <p>APRA guidelines require lenders to assess borrowers' repayment ability under stress scenarios.</p>
+        </div>
+        <div class="mini-card">
+          <div class="mc-icon">🔁</div>
+          <div class="mc-title">Continuity Risk</div>
+          <p>Past non-base income does not guarantee future earnings. Shading creates a conservative buffer.</p>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="label">Typical Income Shading Rates (Common Industry Range)</div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Non-Base Type</th><th>Common Shading Rate</th><th>Example: $20,000 Non-Base</th><th>Notes</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Overtime</td>
+              <td>80% accepted</td>
+              <td>$16,000 used in servicing</td>
+              <td>Must show 2 years consistency at most lenders</td>
+            </tr>
+            <tr>
+              <td>Commission</td>
+              <td>80% accepted</td>
+              <td>$16,000 used in servicing</td>
+              <td>Some require 2-yr average; others 1-yr</td>
+            </tr>
+            <tr>
+              <td>Bonus</td>
+              <td>80% accepted</td>
+              <td>$16,000 used in servicing</td>
+              <td>Must be evidenced and reasonably expected to continue</td>
+            </tr>
+            <tr>
+              <td>Casual income (total)</td>
+              <td>80% of annualised YTD</td>
+              <td>YTD annualised × 80%</td>
+              <td>Entire casual income treated as variable</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="rule-box warning mt10">
+        <span class="icon">⚠</span>
+        <span>Shading rates <strong>vary by lender</strong> — some shade at 60%, others 80%, some accept 100% for overtime with 2+ years consistent history. Always check the specific lender's credit policy.</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="label">How Income Shading Looks in a Servicing Calculator</div>
+      <div class="calc-box">
+        <div class="calc-header">── Servicing Calculator — Income Section ──</div>
+        <div class="calc-grid">
+          <div class="calc-item cyan">
+            <div class="ci-label">Base Salary (Annual)</div>
+            <div class="ci-amt">$85,000</div>
+            <div class="ci-shade">100% — full amount</div>
+          </div>
+          <div class="calc-item cyan">
+            <div class="ci-label">Recurring Allowance</div>
+            <div class="ci-amt">$3,600</div>
+            <div class="ci-shade">100% — recurring</div>
+          </div>
+          <div class="calc-item gold">
+            <div class="ci-label">Overtime (YTD annualised)</div>
+            <div class="ci-amt">$12,000</div>
+            <div class="ci-shade">80% shaded → $9,600</div>
+          </div>
+          <div class="calc-item gold">
+            <div class="ci-label">Commission (2-yr avg)</div>
+            <div class="ci-amt">$8,000</div>
+            <div class="ci-shade">80% shaded → $6,400</div>
+          </div>
+          <div class="calc-item gold">
+            <div class="ci-label">Bonus (last year)</div>
+            <div class="ci-amt">$5,000</div>
+            <div class="ci-shade">80% shaded → $4,000</div>
+          </div>
+        </div>
+        <div class="calc-totals">
+          <div class="calc-row">
+            <span class="cr-label">Base Income Total</span>
+            <span class="cr-cyan">$88,600</span>
+          </div>
+          <div class="calc-row">
+            <span class="cr-label">Shaded Non-Base Total</span>
+            <span class="cr-gold">$20,000</span>
+          </div>
+          <div class="calc-total">
+            <span class="ct-label">Total Assessable Income</span>
+            <span class="ct-value">$108,600</span>
+          </div>
+        </div>
+      </div>
+      <p class="calc-note">↑ Without shading, the borrower would show $113,600. Income shading reduces this by ~$5,000, directly affecting maximum borrowing capacity.</p>
+    </div>
+  </div>
+
+</div><!-- /content -->
+
+<script>
+  const tabs = document.querySelectorAll('.tab-btn');
+  const sections = document.querySelectorAll('.section');
+
+  tabs.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const target = btn.dataset.section;
+
+      tabs.forEach(t => t.classList.remove('active'));
+      sections.forEach(s => s.classList.remove('active'));
+
+      btn.classList.add('active');
+      document.getElementById(target).classList.add('active');
+
+      // scroll to top of content on mobile
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  });
+</script>
+</body>
+</html>
